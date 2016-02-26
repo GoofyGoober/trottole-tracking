@@ -5,6 +5,7 @@
 #include "ofxCvGrayscaleImage.h"
 #include "ofxCvFloatImage.h"
 #include "ofxCvContourFinder.h"
+#include "ofxOsc.h"
 
 
 class ofApp : public ofBaseApp{
@@ -28,6 +29,8 @@ class ofApp : public ofBaseApp{
         void calcolaContorno(ofVideoGrabber& source, int& _w, int& _h);
         void setupAllocation();
     
+    
+    ofxOscSender sender;
     
 
     ofVideoPlayer video;

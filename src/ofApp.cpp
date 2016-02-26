@@ -12,6 +12,7 @@ void ofApp::setup(){
     
     ofSetFrameRate(30);
     setupAllocation();
+    sender.setup("169.254.7.175", 12345);
 }
 
 void ofApp::setupAllocation(){
@@ -41,12 +42,14 @@ void ofApp::calcolaContorno(ofVideoGrabber& source, int& _w, int& _h){
             filtered.getPixels()[i] = ofInRange(green.getPixels()[i],0,10) ? 0 : 255;
         }
         filtered.flagImageChanged();
-        finder.findContours(filtered, 50, wh/2, 10, false);
+        finder.findContours(filtered, 50, wh/2, 3, false);
     }
 }
 
 //--------------------------------------------------------------
 void ofApp::draw(){
+    
+    ofxOscBundle bundle;
     if(status==MONITOR_4){
         green.draw(640,0);
         filtered.draw(0,480);
@@ -63,11 +66,22 @@ void ofApp::draw(){
     } else if (status==DISEGNO) {
         
         for (int i=0; i<finder.nBlobs; i++) {
-            
+            ofxOscMessage m;
+            m.setAddress("blob_"+ofToString(i)+"/");
+            int newX = float(finder.blobs[i].centroid.x/w)*100;
+            int newY = float(finder.blobs[i].centroid.y/h)*100;
+            m.addInt32Arg(newX);
+            m.addInt32Arg(newY);
+            m.addInt32Arg(1);
+
             ofDrawCircle(finder.blobs[i].centroid.x, finder.blobs[i].centroid.y, 5);
+            bundle.addMessage(m);
         }
         
     }
+    
+    // Invio OSC
+    sender.sendBundle(bundle);
 }
 
 //--------------------------------------------------------------
