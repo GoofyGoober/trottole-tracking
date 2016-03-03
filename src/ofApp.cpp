@@ -10,8 +10,6 @@ int wh = w*h;
 
 ofImage imageIphone;
 ofFile file;
-ofxLibwebsockets::Server  server;
-ofxLibwebsockets::ServerOptions options;
 string OSC_IP = "169.254.7.175";
 int    OSC_PORT = 12345;
 int    WEB_SERVER_SOCKET_PORT = 8080;
@@ -136,64 +134,4 @@ void ofApp::keyPressed(int key){
         }
         setupAllocation();
     }
-}
-
-void ofApp::setupWebSockets()
-{
-    ofLogNotice("--- SETUP ----");
-    options = ofxLibwebsockets::defaultServerOptions();
-    options.port = WEB_SERVER_SOCKET_PORT;
-    options.bUseSSL = false;
-    server.setup( options );
-    server.addListener(this);
-    ofLogNotice("WebSocket server setup at "+ofToString(server.getPort()));
-}
-
-
-//--------------------------------------------------------------
-void ofApp::gotMessage(ofMessage msg){
-    ofLogNotice("--- MESSAGE---");
-}
-
-//--------------------------------------------------------------
-void ofApp::dragEvent(ofDragInfo dragInfo){ 
-    ofLogNotice("----> f");
-}
-
-void ofApp::onConnect(ofxLibwebsockets::Event& args)
-{
-    ofLogNotice("ASD");
-    cout<<"on connected"<<endl;
-}
-
-void ofApp::onOpen(ofxLibwebsockets::Event& args)
-{
-    ofLogNotice("AsD - onOpen");
-    cout<<"new connection open"<<endl;
-}
-
-void ofApp::onClose(ofxLibwebsockets::Event& args)
-{
-        ofLogNotice("close");
-    cout<<"on close"<<endl;
-}
-
-void ofApp::onIdle(ofxLibwebsockets::Event& args)
-{
-        ofLogNotice("idle");
-    cout<<"on idle"<<endl;
-}
-
-void ofApp::onMessage(ofxLibwebsockets::Event& args)
-{
-        ofLogNotice("messaggggino");
-    cout<<"got message "<<args.message<<endl;
-
-    args.conn.send(args.message);
-}
-
-void ofApp::onBroadcast(ofxLibwebsockets::Event& args)
-{
-            ofLogNotice("broadcast");
-    cout<<"got broadcast "<<args.message<<endl;
 }
