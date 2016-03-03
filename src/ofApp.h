@@ -15,10 +15,6 @@ class ofApp : public ofBaseApp{
 		void setup();
 		void update();
 		void draw();
-
-
-		void dragEvent(ofDragInfo dragInfo);
-		void gotMessage(ofMessage msg);
         void keyPressed(int key);
         void calcolaContornoDaWebCam(ofVideoGrabber& source);
         void calcolaContornoDaIphone();
@@ -31,6 +27,7 @@ class ofApp : public ofBaseApp{
         void onIdle(ofxLibwebsockets::Event& args);
         void onMessage(ofxLibwebsockets::Event& args);
         void onBroadcast(ofxLibwebsockets::Event& args);
+    void sendOsc(int i);
 
     ofxOscSender sender;
     
@@ -43,7 +40,8 @@ class ofApp : public ofBaseApp{
     ofxCvFloatImage diffFloat;   //Amplified difference images
     ofxCvFloatImage bufferFloat; //Buffer image
     ofVideoGrabber webcam;
-    ofxCvGrayscaleImage filtered,red,green,blue;
+    ofxCvGrayscaleImage red,green,blue;
+    ofxCvGrayscaleImage filteredGreen,filteredRed,filteredBlue;
     ofxCvContourFinder finder;
     ofImage     img;
     
