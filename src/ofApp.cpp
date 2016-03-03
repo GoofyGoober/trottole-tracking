@@ -80,32 +80,43 @@ void ofApp::draw(){
     
         //draw red circles for found blobs
         for (int i=0; i<finder.nBlobs; i++) {
+            sendOsc(i);
             ofDrawCircle(finder.blobs[i].centroid.x, finder.blobs[i].centroid.y, 5);
         }
         
     } else if (status==DISEGNO) {
-        
         for (int i=0; i<finder.nBlobs; i++) {
-            ofxOscMessage m;
-            m.setAddress("blob_"+ofToString(i)+"/");
-            int newX = float(finder.blobs[i].centroid.x/w)*100;
-            int newY = float(finder.blobs[i].centroid.y/h)*100;
-            m.addInt32Arg(newX);
-            m.addInt32Arg(newY);
-            m.addInt32Arg(1);
-
+            sendOsc(i);
             ofDrawCircle(finder.blobs[i].centroid.x, finder.blobs[i].centroid.y, 5);
-            bundle.addMessage(m);
         }
+
         
     }
     
-    // Invio OSC
-    sender.sendBundle(bundle);
+    if (finder.blobs.size() > 0){
+        sender.sendBundle(bundle);
+        
+    }
+
     
-    //int imgWidth = imageIphone.getWidth();
-    //int imgHeight = imageIphone.getHeight();
-    //imageIphone.draw(10, 10, imgWidth, imgHeight);
+    int imgWidth = imageIphone.getWidth();
+    int imgHeight = imageIphone.getHeight();
+    imageIphone.draw(10, 10, imgWidth/2, imgHeight/2);
+}
+
+ofxOscMessage m;
+int newX;
+int newY;
+
+void ofApp::sendOsc(int i){
+    m.clear();
+    m.setAddress("/blob_"+ofToString(i));
+    newX = float(finder.blobs[i].centroid.x/w)*100;
+    newY = float(finder.blobs[i].centroid.y/h)*100;
+    m.addInt32Arg(newX);
+    m.addInt32Arg(newY);
+    m.addInt32Arg(1);
+    bundle.addMessage(m);
 }
 
 //--------------------------------------------------------------
