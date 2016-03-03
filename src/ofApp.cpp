@@ -10,10 +10,9 @@ int wh = w*h;
 
 ofImage imageIphone;
 ofFile file;
-string OSC_IP = "169.254.7.175";
+string OSC_IP = "127.0.0.1";
 int    OSC_PORT = 12345;
 int    WEB_SERVER_SOCKET_PORT = 8080;
-
 ofxOscBundle bundle;
 //--------------------------------------------------------------
 void ofApp::setup(){
