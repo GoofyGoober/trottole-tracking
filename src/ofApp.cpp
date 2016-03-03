@@ -14,13 +14,12 @@ string OSC_IP = "169.254.7.175";
 int    OSC_PORT = 12345;
 int    WEB_SERVER_SOCKET_PORT = 8080;
 
+ofxOscBundle bundle;
 //--------------------------------------------------------------
 void ofApp::setup(){
     
     ofSetFrameRate(24);
     setupAllocation();
-    webcam.setup(w,h);
-    setupWebSockets();
     sender.setup(OSC_IP, OSC_PORT);
 }
 
@@ -39,6 +38,7 @@ void ofApp::update(){
     file.open("/Users/ale/test.jpg", ofFile::ReadOnly, false);
 
     //imageIphone.load(file);
+    bundle.clear();
 }
 
 void ofApp::calcolaContornoDaIphone(){
@@ -66,8 +66,6 @@ void ofApp::calcolaContorno(){
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-    
-    ofxOscBundle bundle;
     
     if(status==MONITOR_4){
 
