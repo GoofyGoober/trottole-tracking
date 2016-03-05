@@ -46,10 +46,14 @@ bool ofApp::toggleButtonPressed(bool & inval){
 void ofApp::setupAllocation(){
     webcam.setup(w,h);
     image.allocate(w,h);
+    imageHSV.allocate(w,h);
     filtered.allocate(w,h);
     red.allocate(w,h);
     green.allocate(w,h);
     blue.allocate(w,h);
+    hue.allocate(w, h);
+    sat.allocate(w, h);
+    bri.allocate(w, h);
 }
 
 //--------------------------------------------------------------
@@ -63,31 +67,52 @@ void ofApp::calcolaContornoDaWebCam(){
     if (webcam.isFrameNew()){
         image.setFromPixels( webcam.getPixels() );
         image.mirror(false, true);
-        image.convertToGrayscalePlanarImages(red, green, blue);
-        red+=blue;
-        green-=red;
-        calcolaContorno();
+        imageHSV = image;
+        imageHSV.convertRgbToHsv();
+        imageHSV.convertToGrayscalePlanarImages(hue, sat, bri);
+
+        verdi = estremizzaBianchiNeri(hue, 115);
+        contorniVerdi = calcolaContorno(verdi);
         
     }
 }
 
-void ofApp::calcolaContorno(){
+
+ofxCvGrayscaleImage ofApp::estremizzaBianchiNeri(ofxCvGrayscaleImage _imagebw, int hueSearching){
+    ofPixels   pixels = _imagebw.getPixels();
+    ofPixels   pixelsGreen =  _imagebw.getPixels();
+    
+    int min = hueSearching-sliderColorSensibility;
+    int max = hueSearching+sliderColorSensibility;
 
     for (int i=0; i<wh; i++) {
-        filtered.getPixels()[i] = ofInRange(green.getPixels()[i],0,sliderColorSensibility) ? 0 : 255;
+        pixels[i] = ofInRange(pixelsGreen[i],min,max) ? 255 : 0;
     }
-    filtered.flagImageChanged();
-    finder.findContours(filtered, sliderMinArea, sliderMaxArea, sliderNConsidered, toggleUseApproximation);
+    _imagebw.setFromPixels(pixels);
+    return _imagebw;
+    
 }
+
+ofxCvContourFinder ofApp::calcolaContorno(ofxCvGrayscaleImage _filtered){
+    ofxCvContourFinder _finder;
+    _finder.findContours(_filtered,
+                        sliderMinArea,
+                        sliderMaxArea,
+                        sliderNConsidered,
+                        toggleUseApproximation);
+    return _finder;
+}
+
+
 
 
 //--------------------------------------------------------------
 void ofApp::draw(){
     if(toggle){
         green.draw(640,0);
-        filtered.draw(0,480);
-        finder.draw(640,480);
-        webcam.draw(0, 0, 640, 480);
+        imageHSV.draw(0,480);
+        contorniVerdi.draw(640,480);
+        webcam.draw(webcam.getWidth(),0,-webcam.getWidth(),webcam.getHeight());
 
         drawBlobs();
         
@@ -109,7 +134,6 @@ void ofApp::drawBlobs(){
         sendOsc(i);
         int x = finder.blobs[i].centroid.x;
         int y = finder.blobs[i].centroid.y;
-        ofLogNotice(ofToString(x));
         ofDrawCircle(x, y, 5);
     }
     

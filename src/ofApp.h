@@ -20,7 +20,8 @@ class ofApp : public ofBaseApp{
         void keyPressed(int key);
         void calcolaContornoDaWebCam();
         void calcolaContornoDaIphone();
-        void calcolaContorno();
+        ofxCvContourFinder calcolaContorno(ofxCvGrayscaleImage _filtered);
+        ofxCvGrayscaleImage estremizzaBianchiNeri(ofxCvGrayscaleImage _imagebw, int hueSearching);
         void setupAllocation();
         void setupGui();
         void drawBlobs();
@@ -45,14 +46,22 @@ class ofApp : public ofBaseApp{
     ofVideoGrabber webcam;
     
     ofxCvColorImage image;
-    ofxCvGrayscaleImage grayImage, grayImagePrev;
-    ofxCvGrayscaleImage diff;    //Absolute difference of the frames
-    ofxCvFloatImage diffFloat;   //Amplified difference images
-    ofxCvFloatImage bufferFloat; //Buffer image
-    ofxCvGrayscaleImage red,green,blue;
-    ofxCvGrayscaleImage filtered, filteredGreen,filteredRed,filteredBlue;
-    ofxCvContourFinder finder, finderGreen;
-    ofImage     img;
+    ofxCvColorImage imageHSV;
+    // colors
+    ofxCvGrayscaleImage red;
+    ofxCvGrayscaleImage green;
+    ofxCvGrayscaleImage blue;
+    
+    ofxCvGrayscaleImage hue;
+    ofxCvGrayscaleImage sat;
+    ofxCvGrayscaleImage bri;
+    
+    ofxCvGrayscaleImage filtered;
+    ofxCvGrayscaleImage verdi;
+    ofxCvGrayscaleImage filteredRed;
+    ofxCvGrayscaleImage filteredBlue;
+    ofxCvContourFinder finder, contorniVerdi;
+    ofImage img;
     
     
     int newX;
