@@ -6,8 +6,10 @@
 #include "ofxCvFloatImage.h"
 #include "ofxCvContourFinder.h"
 #include "ofxOsc.h"
-#include "ofxLibwebsockets.h"
+#include "ofxGui.h"
 
+#define MONITOR_4 0
+#define DISEGNO 1
 
 class ofApp : public ofBaseApp{
 
@@ -16,36 +18,57 @@ class ofApp : public ofBaseApp{
 		void update();
 		void draw();
         void keyPressed(int key);
-        void calcolaContornoDaWebCam(ofVideoGrabber& source);
+        void calcolaContornoDaWebCam();
         void calcolaContornoDaIphone();
         void calcolaContorno();
         void setupAllocation();
-        void setupWebSockets();  
-        void onConnect(ofxLibwebsockets::Event& args);
-        void onOpen(ofxLibwebsockets::Event& args);
-        void onClose(ofxLibwebsockets::Event& args);
-        void onIdle(ofxLibwebsockets::Event& args);
-        void onMessage(ofxLibwebsockets::Event& args);
-        void onBroadcast(ofxLibwebsockets::Event& args);
-    void sendOsc(int i);
-
-    ofxOscSender sender;
+        void setupGui();
+        void drawBlobs();
+        void sendOsc(int i);
+        bool toggleButtonPressed(bool & inval);
     
-    ofxLibwebsockets::Server server;
+    //osc
+    ofxOscSender sender;
+    ofxOscMessage m;
+    
+    // gui
+    ofxPanel gui;
+    ofxToggle toggle;
+    ofxToggle toggleUseApproximation;
+    //gui for findContours
+    ofxIntSlider sliderMinArea;
+    ofxIntSlider sliderMaxArea;
+    ofxIntSlider sliderNConsidered;
+    ofxIntSlider sliderColorSensibility;
 
-    ofVideoPlayer video;
+    // webacam
+    ofVideoGrabber webcam;
+    
     ofxCvColorImage image;
     ofxCvGrayscaleImage grayImage, grayImagePrev;
     ofxCvGrayscaleImage diff;    //Absolute difference of the frames
     ofxCvFloatImage diffFloat;   //Amplified difference images
     ofxCvFloatImage bufferFloat; //Buffer image
-    ofVideoGrabber webcam;
     ofxCvGrayscaleImage red,green,blue;
-    ofxCvGrayscaleImage filteredGreen,filteredRed,filteredBlue;
-    ofxCvContourFinder finder;
+    ofxCvGrayscaleImage filtered, filteredGreen,filteredRed,filteredBlue;
+    ofxCvContourFinder finder, finderGreen;
     ofImage     img;
     
+    
+    int newX;
+    int newY;
+    
+    
+    int status = 0;
     int w = 640;
     int h = 480;
-		
+    int wh = w*h;
+    
+    ofImage imageIphone;
+    ofFile file;
+    string OSC_IP = "127.0.0.1";
+    int    OSC_PORT = 12345;
+    int    WEB_SERVER_SOCKET_PORT = 8080;
+    ofxOscBundle bundle;
+
 };

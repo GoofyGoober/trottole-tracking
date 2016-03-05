@@ -1,28 +1,50 @@
 #include "ofApp.h"
 
-#define MONITOR_4 0
-#define DISEGNO 1
-
-int status = 0;
-int w = 640;
-int h = 480;
-int wh = w*h;
-
-ofImage imageIphone;
-ofFile file;
-string OSC_IP = "127.0.0.1";
-int    OSC_PORT = 12345;
-int    WEB_SERVER_SOCKET_PORT = 8080;
-ofxOscBundle bundle;
 //--------------------------------------------------------------
 void ofApp::setup(){
-    
-    ofSetFrameRate(24);
-    setupAllocation();
+    ofSetVerticalSync(true);
+
+    ofSetFrameRate(60);
+    setupAllocation();;
     sender.setup(OSC_IP, OSC_PORT);
+
+    toggle.addListener(this, &ofApp::toggleButtonPressed);
+
+    setupGui();
+
+}
+
+void ofApp::setupGui(){
+    gui.setup();
+    toggle.setup("show all visualization",true);
+    sliderMinArea.setup("min-area", 10,1,300);
+    sliderMaxArea.setup("max-area", wh/2,10,300);
+    sliderNConsidered.setup("n-considered", 1,1,20);
+    sliderColorSensibility.setup("color-sensibility",20,0,255);
+    toggleUseApproximation.setup("approximation",true);
+    gui.add(&sliderMinArea);
+    gui.add(&sliderMaxArea);
+    gui.add(&sliderNConsidered);
+    gui.add(&sliderColorSensibility);
+    gui.add(&toggleUseApproximation);
+    gui.add(&toggle);
+}
+
+
+bool ofApp::toggleButtonPressed(bool & inval){
+    if (!inval){
+        w = 1280;
+        h = 960;
+    } else {
+        w = 640;
+        h = 480;
+    }
+    wh = w*h;
+    setupAllocation();
 }
 
 void ofApp::setupAllocation(){
+    webcam.setup(w,h);
     image.allocate(w,h);
     filtered.allocate(w,h);
     red.allocate(w,h);
@@ -33,77 +55,66 @@ void ofApp::setupAllocation(){
 //--------------------------------------------------------------
 void ofApp::update(){
     webcam.update();
-    //calcolaContornoDaWebCam(webcam);
-    file.open("/Users/ale/test.jpg", ofFile::ReadOnly, false);
-
-    //imageIphone.load(file);
+    calcolaContornoDaWebCam();
     bundle.clear();
 }
 
-void ofApp::calcolaContornoDaIphone(){
-    
-}
-void ofApp::calcolaContornoDaWebCam(ofVideoGrabber& source){
-
-    if (source.isFrameNew()){
-        image.setFromPixels( source.getPixels() );
+void ofApp::calcolaContornoDaWebCam(){
+    if (webcam.isFrameNew()){
+        image.setFromPixels( webcam.getPixels() );
+        image.mirror(false, true);
+        image.convertToGrayscalePlanarImages(red, green, blue);
+        red+=blue;
+        green-=red;
         calcolaContorno();
+        
     }
 }
 
 void ofApp::calcolaContorno(){
-    image.mirror(false, true);
-    image.convertToGrayscalePlanarImages(red, green, blue);
-    red+=blue;
-    green-=red;
+
     for (int i=0; i<wh; i++) {
-        filtered.getPixels()[i] = ofInRange(green.getPixels()[i],0,10) ? 0 : 255;
+        filtered.getPixels()[i] = ofInRange(green.getPixels()[i],0,sliderColorSensibility) ? 0 : 255;
     }
     filtered.flagImageChanged();
-    finder.findContours(filtered, 50, wh/2, 3, false);
+    finder.findContours(filtered, sliderMinArea, sliderMaxArea, sliderNConsidered, toggleUseApproximation);
 }
+
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-    
-    if(status==MONITOR_4){
-
+    if(toggle){
         green.draw(640,0);
         filtered.draw(0,480);
         finder.draw(640,480);
-        
-        //inverte webcam image
-        webcam.draw(webcam.getWidth(),0,-webcam.getWidth(),webcam.getHeight());
-    
-        //draw red circles for found blobs
-        for (int i=0; i<finder.nBlobs; i++) {
-            sendOsc(i);
-            ofDrawCircle(finder.blobs[i].centroid.x, finder.blobs[i].centroid.y, 5);
-        }
-        
-    } else if (status==DISEGNO) {
-        for (int i=0; i<finder.nBlobs; i++) {
-            sendOsc(i);
-            ofDrawCircle(finder.blobs[i].centroid.x, finder.blobs[i].centroid.y, 5);
-        }
+        webcam.draw(0, 0, 640, 480);
 
+        drawBlobs();
         
+    } else {
+        drawBlobs();
     }
     
     if (finder.blobs.size() > 0){
         sender.sendBundle(bundle);
-        
     }
 
     
-    int imgWidth = imageIphone.getWidth();
-    int imgHeight = imageIphone.getHeight();
-    imageIphone.draw(10, 10, imgWidth/2, imgHeight/2);
+    gui.draw();
 }
 
-ofxOscMessage m;
-int newX;
-int newY;
+
+void ofApp::drawBlobs(){
+    for (int i=0; i<finder.nBlobs; i++) {
+        sendOsc(i);
+        int x = finder.blobs[i].centroid.x;
+        int y = finder.blobs[i].centroid.y;
+        ofLogNotice(ofToString(x));
+        ofDrawCircle(x, y, 5);
+    }
+    
+}
+
 
 void ofApp::sendOsc(int i){
     m.clear();
@@ -116,30 +127,13 @@ void ofApp::sendOsc(int i){
     bundle.addMessage(m);
 }
 
+
+
 //--------------------------------------------------------------
 void ofApp::keyPressed(int key){
     
     if(key == 'x'){
-        setupAllocation();
-        
         img.grabScreen(0, 0 , ofGetWidth(), ofGetHeight());
         img.save("screenshot.png");
-    }
-    
-    if(key== 's'){
-        if (status==MONITOR_4){
-            ofLogNotice("monitor 4");
-            w = 1280;
-            h = 960;
-            wh = w*h;
-            status = DISEGNO;
-        } else if (status==DISEGNO){
-            ofLogNotice("disegno");
-            w = 640;
-            h = 480;
-            wh = w*h;
-            status = MONITOR_4;
-        }
-        setupAllocation();
     }
 }
