@@ -148,6 +148,9 @@ void ofApp::draw(){
 
     
     gui.draw();
+    
+    ofSetWindowTitle(ofToString(ofGetFrameRate()));
+
 }
 
 bool ofApp::contorniHannoBlob(){
