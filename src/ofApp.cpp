@@ -22,12 +22,19 @@ void ofApp::setupGui(){
     sliderNConsidered.setup("n-considered", 1,1,20);
     sliderColorSensibility.setup("color-sensibility",20,0,255);
     toggleUseApproximation.setup("approximation",true);
+    sliderHue1.setup("hue 1",115, 0,255);
+    sliderHue2.setup("hue 2",0, 0,255);
+    sliderHue3.setup("hue 3",240, 0,255);
     gui.add(&sliderMinArea);
     gui.add(&sliderMaxArea);
     gui.add(&sliderNConsidered);
     gui.add(&sliderColorSensibility);
     gui.add(&toggleUseApproximation);
+    gui.add(&sliderHue1);
+    gui.add(&sliderHue2);
+    gui.add(&sliderHue3);
     gui.add(&toggle);
+    gui.setPosition(ofGetWindowWidth()-gui.getWidth(), 0);
 }
 
 
@@ -36,8 +43,8 @@ bool ofApp::toggleButtonPressed(bool & inval){
         w = 1280;
         h = 960;
     } else {
-        w = 640;
-        h = 480;
+        w = 640/2;
+        h = 480/2;
     }
     wh = w*h;
     setupAllocation();
@@ -46,11 +53,6 @@ bool ofApp::toggleButtonPressed(bool & inval){
 void ofApp::setupAllocation(){
     webcam.setup(w,h);
     image.allocate(w,h);
-    imageHSV.allocate(w,h);
-    filtered.allocate(w,h);
-    red.allocate(w,h);
-    green.allocate(w,h);
-    blue.allocate(w,h);
     hue.allocate(w, h);
     sat.allocate(w, h);
     bri.allocate(w, h);
@@ -67,13 +69,12 @@ void ofApp::calcolaContornoDaWebCam(){
     if (webcam.isFrameNew()){
         image.setFromPixels( webcam.getPixels() );
         image.mirror(false, true);
-        imageHSV = image;
-        imageHSV.convertRgbToHsv();
-        imageHSV.convertToGrayscalePlanarImages(hue, sat, bri);
+        image.convertRgbToHsv();
+        image.convertToGrayscalePlanarImages(hue, sat, bri);
 
-        verdi = estremizzaBianchiNeri(hue, 115);
-        contorniVerdi = calcolaContorno(verdi);
-        
+        contorniVerdi = calcolaContorno(estremizzaBianchiNeri(hue, sliderHue1));
+        contorniRossi = calcolaContorno(estremizzaBianchiNeri(hue, sliderHue2));
+        contorniBlue  = calcolaContorno(estremizzaBianchiNeri(hue, sliderHue3));
     }
 }
 
@@ -103,24 +104,45 @@ ofxCvContourFinder ofApp::calcolaContorno(ofxCvGrayscaleImage _filtered){
     return _finder;
 }
 
-
+ofColor coloreDaSlider(ofxIntSlider slider ){
+    ofColor color;
+    color.setHsb(slider, 255, 255);
+    return color;
+}
 
 
 //--------------------------------------------------------------
 void ofApp::draw(){
     if(toggle){
-        green.draw(640,0);
-        imageHSV.draw(0,480);
-        contorniVerdi.draw(640,480);
+        //webcam.draw(0, 0, webcam.getWidth(), webcam.getHeight());
         webcam.draw(webcam.getWidth(),0,-webcam.getWidth(),webcam.getHeight());
+        webcam.draw(320,0,-webcam.getWidth(),webcam.getHeight());
 
-        drawBlobs();
+        drawBlobs(contorniVerdi);
+        drawBlobs(contorniRossi);
+        drawBlobs(contorniBlue);
         
+        
+        // update gui
+        sliderHue1.setFillColor(coloreDaSlider(sliderHue1));
+        sliderHue1.draw();
+        sliderHue2.setFillColor(coloreDaSlider(sliderHue2));
+        sliderHue2.draw();
+        sliderHue3.setFillColor(coloreDaSlider(sliderHue3));
+        sliderHue3.draw();
+        
+        
+        // mostra analisi
+        contorniVerdi.draw(0,0,320,240);
+        contorniRossi.draw(320,0,320,240);
+        contorniBlue.draw(0,320,320,240);
+
+
     } else {
-        drawBlobs();
+        drawBlobs(contorniVerdi);
     }
     
-    if (finder.blobs.size() > 0){
+    if (contorniVerdi.blobs.size() > 0){
         sender.sendBundle(bundle);
     }
 
@@ -128,23 +150,30 @@ void ofApp::draw(){
     gui.draw();
 }
 
+bool ofApp::contorniHannoBlob(){
+    if (contorniVerdi.blobs.size()>0 || contorniRossi.blobs.size()>0|| contorniBlue.blobs.size()>0){
+        return true;
+    }
+    return false;
+}
 
-void ofApp::drawBlobs(){
-    for (int i=0; i<finder.nBlobs; i++) {
-        sendOsc(i);
-        int x = finder.blobs[i].centroid.x;
-        int y = finder.blobs[i].centroid.y;
+
+void ofApp::drawBlobs(ofxCvContourFinder &contorno){
+    for (int i=0; i<contorno.nBlobs; i++) {
+        sendOsc(i, contorno);
+        int x = contorno.blobs[i].centroid.x;
+        int y = contorno.blobs[i].centroid.y;
         ofDrawCircle(x, y, 5);
     }
     
 }
 
 
-void ofApp::sendOsc(int i){
+void ofApp::sendOsc(int i, ofxCvContourFinder &contorno){
     m.clear();
     m.setAddress("/blob_"+ofToString(i));
-    newX = float(finder.blobs[i].centroid.x/w)*100;
-    newY = float(finder.blobs[i].centroid.y/h)*100;
+    newX = float(contorno.blobs[i].centroid.x/w)*100;
+    newY = float(contorno.blobs[i].centroid.y/h)*100;
     m.addInt32Arg(newX);
     m.addInt32Arg(newY);
     m.addInt32Arg(1);

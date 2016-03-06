@@ -24,9 +24,10 @@ class ofApp : public ofBaseApp{
         ofxCvGrayscaleImage estremizzaBianchiNeri(ofxCvGrayscaleImage _imagebw, int hueSearching);
         void setupAllocation();
         void setupGui();
-        void drawBlobs();
-        void sendOsc(int i);
+        void drawBlobs(ofxCvContourFinder &contorno);
+        void sendOsc(int i, ofxCvContourFinder &contorno);
         bool toggleButtonPressed(bool & inval);
+    bool contorniHannoBlob();
     
     //osc
     ofxOscSender sender;
@@ -41,26 +42,22 @@ class ofApp : public ofBaseApp{
     ofxIntSlider sliderMaxArea;
     ofxIntSlider sliderNConsidered;
     ofxIntSlider sliderColorSensibility;
+    ofxIntSlider sliderHue1;
+    ofxIntSlider sliderHue2;
+    ofxIntSlider sliderHue3;
 
     // webacam
     ofVideoGrabber webcam;
-    
     ofxCvColorImage image;
-    ofxCvColorImage imageHSV;
-    // colors
-    ofxCvGrayscaleImage red;
-    ofxCvGrayscaleImage green;
-    ofxCvGrayscaleImage blue;
     
+    // colors
     ofxCvGrayscaleImage hue;
     ofxCvGrayscaleImage sat;
     ofxCvGrayscaleImage bri;
     
-    ofxCvGrayscaleImage filtered;
-    ofxCvGrayscaleImage verdi;
-    ofxCvGrayscaleImage filteredRed;
-    ofxCvGrayscaleImage filteredBlue;
-    ofxCvContourFinder finder, contorniVerdi;
+    ofxCvContourFinder contorniVerdi;
+    ofxCvContourFinder contorniRossi;
+    ofxCvContourFinder contorniBlue;
     ofImage img;
     
     
