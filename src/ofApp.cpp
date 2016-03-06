@@ -11,14 +11,15 @@ void ofApp::setup(){
     toggle.addListener(this, &ofApp::toggleButtonPressed);
 
     setupGui();
+    
 
 }
 
 void ofApp::setupGui(){
     gui.setup();
     toggle.setup("show all visualization",true);
-    sliderMinArea.setup("min-area", 10,1,300);
-    sliderMaxArea.setup("max-area", wh/2,10,300);
+    sliderMinArea.setup("min-area", 10,1,wh/2);
+    sliderMaxArea.setup("max-area", wh/2,10,wh/2);
     sliderNConsidered.setup("n-considered", 1,1,20);
     sliderColorSensibility.setup("color-sensibility",20,0,255);
     toggleUseApproximation.setup("approximation",true);
