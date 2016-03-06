@@ -1,4 +1,3 @@
 ofxGui
-ofxLibwebsockets
 ofxOpenCv
 ofxOsc
