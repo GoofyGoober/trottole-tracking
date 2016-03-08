@@ -4,7 +4,7 @@
 void ofApp::setup(){
     ofSetVerticalSync(true);
 
-    ofSetFrameRate(30);
+    ofSetFrameRate(20);
     setupAllocation();;
     sender.setup(OSC_IP, OSC_PORT);
 
@@ -18,8 +18,8 @@ void ofApp::setup(){
 void ofApp::setupGui(){
     gui.setup();
     toggle.setup("show all visualization",true);
-    sliderMinArea.setup("min-area", 10,1,800);
-    sliderMaxArea.setup("max-area", wh/2,10,wh/2);
+    sliderMinArea.setup("min-area", 0,1,800);
+    sliderMaxArea.setup("max-area", 100,10,1000);
     sliderNConsidered.setup("n-considered", 1,1,20);
     sliderColorSensibility.setup("color-sensibility",20,0,255);
     toggleUseApproximation.setup("approximation",true);
@@ -44,7 +44,16 @@ void ofApp::setupGui(){
     sliderHue3Lum.setup("lum", 255,0,255);
     sliderHue3LumSensibility.setup("lum-sensibility",20,0,255);
     sliderHue3SatSensibility.setup("sat-sensibility",20,0,255);
-
+    
+    //webcam setup gui
+    sliderWebCamLum.setup("brightness",0,0,255);
+    sliderWebCamExp.setup("exp",0,0,255);
+    sliderWebCamGain.setup("gain",0,0,255);
+    sliderWebCamFrameRate.setup("framerate",1,1,30);
+    sliderWebCamSharpness.setup("sharpness",0,0,255);
+    sliderWebCamGreen.setup("sliderWebCamGreen",0,0,255);
+        sliderWebCamRed.setup("sliderWebCamRed",0,0,255);
+    sliderWebCamBlue.setup("sliderWebCamBlue",0,0,255);
     gui.add(&sliderMinArea);
     gui.add(&sliderMaxArea);
     gui.add(&sliderNConsidered);
@@ -73,25 +82,45 @@ void ofApp::setupGui(){
     gui.add(&sliderHue3Sat);
     gui.add(&sliderHue3SatSensibility);
     
-    gui.add(&toggle);
+    // webcam gui
+    gui.add(&sliderWebCamLum);
+    gui.add(&sliderWebCamExp);
+    gui.add(&sliderWebCamGain);
+    gui.add(&sliderWebCamFrameRate);
+    gui.add(&sliderWebCamSharpness);
+    gui.add(&sliderWebCamGreen);
+    gui.add(&sliderWebCamRed);
+    gui.add(&sliderWebCamBlue);
+    
     gui.setPosition(ofGetWindowWidth()-gui.getWidth(), 0);
+//    gui.load("settings.xml");
+    gui.loadFromFile("settings.xml");
 }
 
 
 bool ofApp::toggleButtonPressed(bool & inval){
-        w = 1280;
-        h = 720;
+        w = 640;
+        h = 480;
    
     wh = w*h;
     setupAllocation();
 }
 
 void ofApp::setupAllocation(){
-    webcam.setup(w,h);
+//    webcam.setup(w,h);
     image.allocate(w,h);
     hue.allocate(w, h);
     sat.allocate(w, h);
     bri.allocate(w, h);
+    
+    webcam.setGrabber(std::make_shared<ofxPS3EyeGrabber>());
+    
+    webcam.setup(w, h);
+//    webcam.getGrabber<ofxPS3EyeGrabber>()->setAutogain(false);
+    webcam.getGrabber<ofxPS3EyeGrabber>()->setAutoWhiteBalance(true);
+    webcam.getGrabber<ofxPS3EyeGrabber>()->setDesiredFrameRate(20);
+    webcam.getGrabber<ofxPS3EyeGrabber>()->setBrightness(0);
+
 }
 
 //--------------------------------------------------------------
@@ -202,7 +231,6 @@ ofColor coloreDaSlider(ofxIntSlider sliderHue, ofxIntSlider sliderSat, ofxIntSli
 
 //--------------------------------------------------------------
 void ofApp::draw(){
-    if(toggle){
         webcam.draw(webcam.getWidth(),0,-webcam.getWidth(),webcam.getHeight());
         
         // update gui
@@ -229,9 +257,6 @@ void ofApp::draw(){
         }
 
 
-    } else {
-        drawBlobs(contorniVerdi, ofColor::green);
-    }
     
     if (contorniVerdi.blobs.size() > 0){
         sender.sendBundle(bundle);
@@ -241,6 +266,17 @@ void ofApp::draw(){
     gui.draw();
     
     ofSetWindowTitle(ofToString(ofGetFrameRate()));
+    
+    
+    webcam.getGrabber<ofxPS3EyeGrabber>()->setBrightness(sliderWebCamLum);
+    webcam.getGrabber<ofxPS3EyeGrabber>()->setExposure(sliderWebCamExp);
+    webcam.getGrabber<ofxPS3EyeGrabber>()->setGain(sliderWebCamGain);
+    webcam.getGrabber<ofxPS3EyeGrabber>()->setDesiredFrameRate(sliderWebCamFrameRate);
+    webcam.getGrabber<ofxPS3EyeGrabber>()->setGreenBalance(sliderWebCamGreen);
+    webcam.getGrabber<ofxPS3EyeGrabber>()->setRedBalance(sliderWebCamRed);
+    webcam.getGrabber<ofxPS3EyeGrabber>()->setBlueBalance(sliderWebCamBlue);
+    webcam.getGrabber<ofxPS3EyeGrabber>()->setGreenBalance(sliderWebCamGreen);
+    webcam.getGrabber<ofxPS3EyeGrabber>()->setSharpness(sliderWebCamSharpness);
 
 }
 
@@ -300,6 +336,6 @@ ofColor color =     webcam.getPixels().getColor(w-x, y);
     sliderHue1Lum = color.getLightness();
     
     sliderHue1Sat = color.getSaturation();
-    
+
     
 }

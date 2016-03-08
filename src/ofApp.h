@@ -7,6 +7,7 @@
 #include "ofxCvContourFinder.h"
 #include "ofxOsc.h"
 #include "ofxGui.h"
+#include "ofxPS3EyeGrabber.h"
 
 #define MONITOR_4 0
 #define DISEGNO 1
@@ -78,8 +79,19 @@ class ofApp : public ofBaseApp{
     ofxIntSlider sliderHue3LumSensibility;
     
     ofxToggle toggleHue3;
+    // gui webcam
+    ofxIntSlider sliderWebCamLum;
+    ofxIntSlider sliderWebCamExp;
+    ofxIntSlider sliderWebCamGain;
+    ofxIntSlider sliderWebCamFrameRate;
+    ofxIntSlider sliderWebCamSharpness;
+    ofxIntSlider sliderWebCamGreen;
+    ofxIntSlider sliderWebCamRed;
+    ofxIntSlider sliderWebCamBlue;
+    
+    ofxToggle toggleAutoGain;
 
-    // webacam
+    // webcam
     ofVideoGrabber webcam;
     ofxCvColorImage image;
     
