@@ -4,7 +4,7 @@
 void ofApp::setup(){
     ofSetVerticalSync(true);
 
-    ofSetFrameRate(60);
+    ofSetFrameRate(30);
     setupAllocation();;
     sender.setup(OSC_IP, OSC_PORT);
 
@@ -18,35 +18,70 @@ void ofApp::setup(){
 void ofApp::setupGui(){
     gui.setup();
     toggle.setup("show all visualization",true);
-    sliderMinArea.setup("min-area", 10,1,wh/2);
+    sliderMinArea.setup("min-area", 10,1,800);
     sliderMaxArea.setup("max-area", wh/2,10,wh/2);
     sliderNConsidered.setup("n-considered", 1,1,20);
     sliderColorSensibility.setup("color-sensibility",20,0,255);
     toggleUseApproximation.setup("approximation",true);
-    sliderHue1.setup("hue 1",115, 0,255);
-    sliderHue2.setup("hue 2",0, 0,255);
-    sliderHue3.setup("hue 3",240, 0,255);
+    
+    toggleHue1.setup("enable 1", true);
+    sliderHue1.setup("hue 1",  64, 0, 255);
+    sliderHue1Sat.setup("sat", 255,0,255);
+    sliderHue1Lum.setup("lum", 255,0,255);
+    sliderHue1LumSensibility.setup("lum-sensibility",20,0,255);
+    sliderHue1SatSensibility.setup("sat-sensibility",20,0,255);
+
+    toggleHue2.setup("enable 2", true);
+    sliderHue2.setup("hue 2", 183, 0, 255);
+    sliderHue2Sat.setup("sat", 255,0,255);
+    sliderHue2Lum.setup("lum", 255,0,255);
+    sliderHue2LumSensibility.setup("lum-sensibility",20,0,255);
+    sliderHue2SatSensibility.setup("sat-sensibility",20,0,255);
+    
+    toggleHue3.setup("enable 3", true);
+    sliderHue3.setup("hue 3", 255, 0, 255);
+    sliderHue3Sat.setup("sat", 255,0,255);
+    sliderHue3Lum.setup("lum", 255,0,255);
+    sliderHue3LumSensibility.setup("lum-sensibility",20,0,255);
+    sliderHue3SatSensibility.setup("sat-sensibility",20,0,255);
+
     gui.add(&sliderMinArea);
     gui.add(&sliderMaxArea);
     gui.add(&sliderNConsidered);
     gui.add(&sliderColorSensibility);
+
     gui.add(&toggleUseApproximation);
+    
     gui.add(&sliderHue1);
+    gui.add(&toggleHue1);
+    gui.add(&sliderHue1Lum);
+    gui.add(&sliderHue1LumSensibility);
+    gui.add(&sliderHue1Sat);
+    gui.add(&sliderHue1SatSensibility);
+
     gui.add(&sliderHue2);
+    gui.add(&toggleHue2);
+    gui.add(&sliderHue2Lum);
+    gui.add(&sliderHue2LumSensibility);
+    gui.add(&sliderHue2Sat);
+    gui.add(&sliderHue2SatSensibility);
+
     gui.add(&sliderHue3);
+    gui.add(&toggleHue3);
+    gui.add(&sliderHue3Lum);
+    gui.add(&sliderHue3LumSensibility);
+    gui.add(&sliderHue3Sat);
+    gui.add(&sliderHue3SatSensibility);
+    
     gui.add(&toggle);
     gui.setPosition(ofGetWindowWidth()-gui.getWidth(), 0);
 }
 
 
 bool ofApp::toggleButtonPressed(bool & inval){
-    if (!inval){
         w = 1280;
-        h = 960;
-    } else {
-        w = 640/2;
-        h = 480/2;
-    }
+        h = 720;
+   
     wh = w*h;
     setupAllocation();
 }
@@ -73,26 +108,79 @@ void ofApp::calcolaContornoDaWebCam(){
         image.convertRgbToHsv();
         image.convertToGrayscalePlanarImages(hue, sat, bri);
 
-        contorniVerdi = calcolaContorno(estremizzaBianchiNeri(hue, sliderHue1));
-        contorniRossi = calcolaContorno(estremizzaBianchiNeri(hue, sliderHue2));
-        contorniBlue  = calcolaContorno(estremizzaBianchiNeri(hue, sliderHue3));
+        contorniVerdi = calcolaContorno(estremizzaBianchiNeri(hue,
+                                                              sat,
+                                                              bri,
+                                                              sliderHue1,
+                                                              sliderHue1Sat,
+                                                              sliderHue1Lum,
+                                                              sliderColorSensibility,
+                                                              sliderHue1SatSensibility,
+                                                              sliderHue1LumSensibility));
+        
+        contorniRossi = calcolaContorno(estremizzaBianchiNeri(hue,
+                                                              sat,
+                                                              bri,
+                                                              sliderHue2,
+                                                              sliderHue2Sat,
+                                                              sliderHue2Lum,
+                                                              sliderColorSensibility,
+                                                              sliderHue2SatSensibility,
+                                                              sliderHue2LumSensibility));
+        
+        contorniBlue  = calcolaContorno(estremizzaBianchiNeri(hue,
+                                                              sat,
+                                                              bri,
+                                                              sliderHue3,
+                                                              sliderHue3Sat,
+                                                              sliderHue3Lum,
+                                                              sliderColorSensibility,
+                                                              sliderHue3SatSensibility,
+                                                              sliderHue3LumSensibility));
     }
 }
 
 
-ofxCvGrayscaleImage ofApp::estremizzaBianchiNeri(ofxCvGrayscaleImage _imagebw, int hueSearching){
-    ofPixels   pixels = _imagebw.getPixels();
-    ofPixels   pixelsGreen =  _imagebw.getPixels();
+
+
+ofxCvGrayscaleImage ofApp::estremizzaBianchiNeri(ofxCvGrayscaleImage _hue,
+                                                 ofxCvGrayscaleImage _sat,
+                                                 ofxCvGrayscaleImage _lum,
+                                                 int hueSearching,
+                                                 int satSearching,
+                                                 int lumSearching,
+                                                 int hueSensibility,
+                                                 int satSensiblity,
+                                                 int lumSensibility) {
     
-    int min = hueSearching-sliderColorSensibility;
-    int max = hueSearching+sliderColorSensibility;
+
+    ofPixels   pixels = image.getPixels();
+    ofPixels   hue    = _hue.getPixels();
+    ofPixels   sat    = _sat.getPixels();
+    ofPixels   lum    = _lum.getPixels();
+    
+    int minHue = hueSearching-hueSensibility;
+    int maxHue = hueSearching+hueSensibility;
+    
+    int minSat = satSearching-satSensiblity;
+    int maxSat = satSearching+satSensiblity;
+
+    int minLum = lumSearching-lumSensibility;
+    int maxLum = lumSearching+lumSensibility;
 
     for (int i=0; i<wh; i++) {
-        pixels[i] = ofInRange(pixelsGreen[i],min,max) ? 255 : 0;
+        if (ofInRange(hue[i], minHue, maxHue) and
+            ofInRange(sat[i], minSat, maxSat) and
+            ofInRange(lum[i], minLum, maxLum) ){
+            pixels[i] = 255;
+        } else {
+            pixels[i] = 0;
+        }
     }
+    ofxCvGrayscaleImage _imagebw;
+    _imagebw.allocate(w,h);
     _imagebw.setFromPixels(pixels);
     return _imagebw;
-    
 }
 
 ofxCvContourFinder ofApp::calcolaContorno(ofxCvGrayscaleImage _filtered){
@@ -105,9 +193,9 @@ ofxCvContourFinder ofApp::calcolaContorno(ofxCvGrayscaleImage _filtered){
     return _finder;
 }
 
-ofColor coloreDaSlider(ofxIntSlider slider ){
+ofColor coloreDaSlider(ofxIntSlider sliderHue, ofxIntSlider sliderSat, ofxIntSlider sliderLum){
     ofColor color;
-    color.setHsb(slider, 255, 255);
+    color.setHsb(sliderHue, sliderSat, sliderLum);
     return color;
 }
 
@@ -115,32 +203,34 @@ ofColor coloreDaSlider(ofxIntSlider slider ){
 //--------------------------------------------------------------
 void ofApp::draw(){
     if(toggle){
-        //webcam.draw(0, 0, webcam.getWidth(), webcam.getHeight());
         webcam.draw(webcam.getWidth(),0,-webcam.getWidth(),webcam.getHeight());
-        webcam.draw(320,0,-webcam.getWidth(),webcam.getHeight());
-
-        drawBlobs(contorniVerdi);
-        drawBlobs(contorniRossi);
-        drawBlobs(contorniBlue);
-        
         
         // update gui
-        sliderHue1.setFillColor(coloreDaSlider(sliderHue1));
+        sliderHue1.setFillColor(coloreDaSlider(sliderHue1, sliderHue1Sat, sliderHue1Lum));
+        sliderHue2.setFillColor(coloreDaSlider(sliderHue2, sliderHue2Sat, sliderHue2Lum));
+        sliderHue3.setFillColor(coloreDaSlider(sliderHue3, sliderHue3Sat, sliderHue3Lum));
         sliderHue1.draw();
-        sliderHue2.setFillColor(coloreDaSlider(sliderHue2));
         sliderHue2.draw();
-        sliderHue3.setFillColor(coloreDaSlider(sliderHue3));
         sliderHue3.draw();
         
-        
         // mostra analisi
-        contorniVerdi.draw(0,0,320,240);
-        contorniRossi.draw(320,0,320,240);
-        contorniBlue.draw(0,320,320,240);
+        
+        if (toggleHue1){
+            contorniVerdi.draw(0, 0, w, h);
+            drawBlobs(contorniVerdi, coloreDaSlider(sliderHue1, sliderHue1Sat, sliderHue1Lum));
+        }
+        if (toggleHue2){
+            contorniRossi.draw(0, 0, w, h);
+            drawBlobs(contorniRossi, coloreDaSlider(sliderHue2, sliderHue2Sat, sliderHue2Lum));
+        }
+        if (toggleHue3){
+            contorniBlue.draw( 0, 0, w, h);
+            drawBlobs(contorniBlue,  coloreDaSlider(sliderHue3, sliderHue3Sat, sliderHue3Lum));
+        }
 
 
     } else {
-        drawBlobs(contorniVerdi);
+        drawBlobs(contorniVerdi, ofColor::green);
     }
     
     if (contorniVerdi.blobs.size() > 0){
@@ -162,13 +252,15 @@ bool ofApp::contorniHannoBlob(){
 }
 
 
-void ofApp::drawBlobs(ofxCvContourFinder &contorno){
+void ofApp::drawBlobs(ofxCvContourFinder &contorno, ofColor color){
+    ofSetColor(color);
     for (int i=0; i<contorno.nBlobs; i++) {
         sendOsc(i, contorno);
         int x = contorno.blobs[i].centroid.x;
         int y = contorno.blobs[i].centroid.y;
         ofDrawCircle(x, y, 5);
     }
+    ofSetColor(255);
     
 }
 
@@ -193,4 +285,21 @@ void ofApp::keyPressed(int key){
         img.grabScreen(0, 0 , ofGetWidth(), ofGetHeight());
         img.save("screenshot.png");
     }
+}
+
+void ofApp::mousePressed(int x, int y, int button){
+ofColor color =     webcam.getPixels().getColor(w-x, y);
+    ofLog()<<"---";
+    ofLog()<<color.getHue();
+    ofLog()<<"saturation";
+    ofLog()<<color.getSaturation();
+        ofLog()<<"lum";
+    ofLog()<<color.getLightness();
+    
+    sliderHue1 = color.getHue();
+    sliderHue1Lum = color.getLightness();
+    
+    sliderHue1Sat = color.getSaturation();
+    
+    
 }

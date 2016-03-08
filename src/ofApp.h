@@ -21,30 +21,63 @@ class ofApp : public ofBaseApp{
         void calcolaContornoDaWebCam();
         void calcolaContornoDaIphone();
         ofxCvContourFinder calcolaContorno(ofxCvGrayscaleImage _filtered);
-        ofxCvGrayscaleImage estremizzaBianchiNeri(ofxCvGrayscaleImage _imagebw, int hueSearching);
+    
+        ofxCvGrayscaleImage estremizzaBianchiNeri(ofxCvGrayscaleImage _hue,
+                                                  ofxCvGrayscaleImage _sat,
+                                                  ofxCvGrayscaleImage _lum,
+                                                  int hueSearching,
+                                                  int satSearching,
+                                                  int lumSearching,
+                                                  int hueSensibility,
+                                                  int satSensibility,
+                                                  int lumSensibility);
         void setupAllocation();
         void setupGui();
-        void drawBlobs(ofxCvContourFinder &contorno);
+        void drawBlobs(ofxCvContourFinder &contorno, ofColor color);
         void sendOsc(int i, ofxCvContourFinder &contorno);
+    void mousePressed(int x, int y, int button);
+
         bool toggleButtonPressed(bool & inval);
     bool contorniHannoBlob();
     
     //osc
     ofxOscSender sender;
     ofxOscMessage m;
-    
+
     // gui
     ofxPanel gui;
     ofxToggle toggle;
     ofxToggle toggleUseApproximation;
+    
     //gui for findContours
     ofxIntSlider sliderMinArea;
     ofxIntSlider sliderMaxArea;
     ofxIntSlider sliderNConsidered;
     ofxIntSlider sliderColorSensibility;
+    
     ofxIntSlider sliderHue1;
+    ofxIntSlider sliderHue1Sat;
+    ofxIntSlider sliderHue1SatSensibility;
+    ofxIntSlider sliderHue1Lum;
+    ofxIntSlider sliderHue1LumSensibility;
+    
+    ofxToggle toggleHue1;
+    
     ofxIntSlider sliderHue2;
+    ofxIntSlider sliderHue2Sat;
+    ofxIntSlider sliderHue2SatSensibility;
+    ofxIntSlider sliderHue2Lum;
+    ofxIntSlider sliderHue2LumSensibility;
+    
+    ofxToggle toggleHue2;
+    
     ofxIntSlider sliderHue3;
+    ofxIntSlider sliderHue3Sat;
+    ofxIntSlider sliderHue3SatSensibility;
+    ofxIntSlider sliderHue3Lum;
+    ofxIntSlider sliderHue3LumSensibility;
+    
+    ofxToggle toggleHue3;
 
     // webacam
     ofVideoGrabber webcam;
@@ -58,8 +91,8 @@ class ofApp : public ofBaseApp{
     ofxCvContourFinder contorniVerdi;
     ofxCvContourFinder contorniRossi;
     ofxCvContourFinder contorniBlue;
+
     ofImage img;
-    
     
     int newX;
     int newY;
